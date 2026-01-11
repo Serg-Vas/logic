@@ -54,9 +54,15 @@ async function switchToFreemode(modelName = FREEMODE_MODELS[0]) {
     return p0;
   }
 
-  const ok = await requestModel(modelHash, 10000);
+  let ok = false;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    ok = await requestModel(modelHash, 10000);
+    if (ok) break;
+    log(`FAILED loading ${modelName} (attempt ${attempt})`);
+    await waitFrames(30);
+  }
   if (!ok) {
-    log(`FAILED loading ${modelName}`);
+    log(`FAILED loading ${modelName} after retries`);
     return 0;
   }
 
@@ -77,13 +83,13 @@ async function switchToFreemode(modelName = FREEMODE_MODELS[0]) {
   // baseline defaults
   SetPedDefaultComponentVariation(p);
   ClearAllPedProps(p);
-  SetPedHeadBlendData(
-    p,
-    0, 0, 0,
-    0, 0, 0,
-    1, 1, 0.0,
-    false
-  );
+  // SetPedHeadBlendData(
+  //   p,
+  //   0, 0, 0,
+  //   0, 0, 0,
+  //   1, 1, 0.0,
+  //   true
+  // );
 
   // give a few frames for clothing/head to settle
   await waitFrames(5);

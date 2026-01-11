@@ -10,11 +10,14 @@ function startFaceCam() {
   const p = PlayerPedId();
   if (!p || !DoesEntityExist(p)) return;
 
+  // const heading = GetEntityHeading(p);
+  // SetEntityHeading(p, (heading + 90.0) % 360.0);
+
   const [x, y, z] = getFaceCoords(p);
   const forward = GetEntityForwardVector(p);
-  const camX = x + forward[0] * 0.6;
-  const camY = y + forward[1] * 0.6;
-  const camZ = z + 0.05;
+  const camX = x + forward[0] * 0.8;
+  const camY = y + forward[1] * 0.8;
+  const camZ = z + 0.10;
 
   if (faceCam) {
     DestroyCam(faceCam, false);

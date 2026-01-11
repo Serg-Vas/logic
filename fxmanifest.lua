@@ -5,6 +5,6 @@ client_script {
     'client/main.js',
     'client/sync.js',
     'client/cam.js',
-    'client/commands.js',
+    'client/appearance.js',
 }
 
