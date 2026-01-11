@@ -83,13 +83,13 @@ async function switchToFreemode(modelName = FREEMODE_MODELS[0]) {
   // baseline defaults
   SetPedDefaultComponentVariation(p);
   ClearAllPedProps(p);
-  // SetPedHeadBlendData(
-  //   p,
-  //   0, 0, 0,
-  //   0, 0, 0,
-  //   1, 1, 0.0,
-  //   true
-  // );
+  SetPedHeadBlendData(
+    p,
+    0, 0, 0,
+    0, 0, 0,
+    1, 1, 0.0,
+    true
+  );
 
   // give a few frames for clothing/head to settle
   await waitFrames(5);
