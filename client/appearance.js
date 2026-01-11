@@ -103,6 +103,10 @@ function getComponentState(p, componentId) {
   return state;
 }
 
+function getEyeColor(p) {
+  return GetPedEyeColor(p);
+}
+
 function getFaceFeatures(p) {
   const features = [];
   for (let i = 0; i < 20; i++) {
@@ -126,7 +130,7 @@ function getHeadBlendState(p) {
 
   const [shapeFirst, shapeSecond, shapeThird, skinFirst, skinSecond, skinThird] = data;
   return {
-    shapefueron: Number.isFinite(shapeFirst) ? shapeFirst : 0,
+    shapeFirst: Number.isFinite(shapeFirst) ? shapeFirst : 0,
     skinFirst: Number.isFinite(skinFirst) ? skinFirst : 0,
   };
 }
@@ -149,7 +153,6 @@ function applyAppearance(p, data = {}) {
       Number(component.palette ?? 0)
     );
     
-    // Apply hair tint only for hair component (componentId 2)
     if (componentId === 2 && data.hair) {
       SetPedHairTint(p, Number(data.hair.hairColor ?? 0), Number(data.hair.hairHighlight ?? 0));
     }
@@ -219,6 +222,11 @@ function applyAppearance(p, data = {}) {
       );
     }
   }
+
+  const eyeColor = data.eyeColor;
+  if (eyeColor !== undefined) {
+    SetPedEyeColor(p, Number(eyeColor));
+  }
 }
 
 on("logic:appearance:apply", (data) => {
@@ -275,7 +283,7 @@ async function changeSex(sex) {
   ClearAllPedProps(newPed);
 
   const shapeValue = sexValue === 1 ? 21 : 0;
-  const skinValue = sexValue === 1 ? 21 : 0;
+  // const skinValue = sexValue === 1 ? 21 : 0;
   SetPedHeadBlendData(
     newPed,
     shapeValue, shapeValue, 0,
@@ -326,6 +334,7 @@ function buildAppearanceInfo(p) {
   const faceFeatures = getFaceFeatures(p);
   const headBlend = getHeadBlendState(p);
   const sex = getSex(p);
+  const eyeColor = getEyeColor(p);
 
   return {
     type: "sync",
@@ -334,6 +343,7 @@ function buildAppearanceInfo(p) {
     faceFeatures,
     headBlend,
     sex,
+    eyeColor,
   };
 }
 
