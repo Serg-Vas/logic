@@ -50,7 +50,7 @@ async function switchToFreemode(modelName = FREEMODE_MODELS[0]) {
   const p0 = PlayerPedId();
   if (p0 && DoesEntityExist(p0) && GetEntityModel(p0) === modelHash && isFreemodeModel(modelHash)) {
     log(`Already ${modelName}`);
-    emit('ce:freemode:ready', { ped: p0, model: modelName, modelHash });
+    emit('logic:freemode:ready', { ped: p0, model: modelName, modelHash });
     return p0;
   }
 
@@ -77,6 +77,13 @@ async function switchToFreemode(modelName = FREEMODE_MODELS[0]) {
   // baseline defaults
   SetPedDefaultComponentVariation(p);
   ClearAllPedProps(p);
+  SetPedHeadBlendData(
+    p,
+    0, 0, 0,
+    0, 0, 0,
+    1, 1, 0.0,
+    false
+  );
 
   // give a few frames for clothing/head to settle
   await waitFrames(5);
