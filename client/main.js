@@ -10,7 +10,6 @@ function isFreemodeModel(modelHash) {
 
 async function waitFrames(n = 1) {
   for (let i = 0; i < n; i++) {
-    // this MUST yield a frame. In FiveM, setTick is safest if you’ve had Delay issues.
     await new Promise((resolve) => {
       const t = setTick(() => { clearTick(t); resolve(); });
     });
@@ -33,7 +32,6 @@ async function waitForPedStable(expectedModelHash, timeoutMs = 4000) {
   while (true) {
     const p = PlayerPedId();
     if (p && p !== 0 && DoesEntityExist(p) && GetEntityModel(p) === expectedModelHash) {
-      // sanity: components queryable (tops has >0 drawables)
       const n = GetNumberOfPedDrawableVariations(p, 11);
       if (Number.isFinite(n) && n > 0) return p;
     }
@@ -46,7 +44,6 @@ async function waitForPedStable(expectedModelHash, timeoutMs = 4000) {
 async function switchToFreemode(modelName = FREEMODE_MODELS[0]) {
   const modelHash = GetHashKey(modelName);
 
-  // already correct?
   const p0 = PlayerPedId();
   if (p0 && DoesEntityExist(p0) && GetEntityModel(p0) === modelHash && isFreemodeModel(modelHash)) {
     log(`Already ${modelName}`);
@@ -71,7 +68,6 @@ async function switchToFreemode(modelName = FREEMODE_MODELS[0]) {
   SetPlayerModel(PlayerId(), modelHash);
   SetModelAsNoLongerNeeded(modelHash);
 
-  // Let ped swap propagate
   await waitFrames(5);
 
   const p = await waitForPedStable(modelHash, 4000);
@@ -80,7 +76,6 @@ async function switchToFreemode(modelName = FREEMODE_MODELS[0]) {
     return 0;
   }
 
-  // baseline defaults
   SetPedDefaultComponentVariation(p);
   ClearAllPedProps(p);
   SetPedHeadBlendData(
@@ -91,7 +86,6 @@ async function switchToFreemode(modelName = FREEMODE_MODELS[0]) {
     true
   );
 
-  // give a few frames for clothing/head to settle
   await waitFrames(5);
 
   emit('logic:freemode:ready', { ped: p, model: modelName, modelHash });
@@ -100,7 +94,6 @@ async function switchToFreemode(modelName = FREEMODE_MODELS[0]) {
   return p;
 }
 
-// Example trigger:
 on('onClientResourceStart', (res) => {
   if (res !== GetCurrentResourceName()) return;
   switchToFreemode(FREEMODE_MODELS[0]);

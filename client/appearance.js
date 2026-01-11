@@ -157,7 +157,6 @@ function applyAppearance(p, data = {}) {
 
   const hair = data.hair;
   if (hair && !component) {
-    // Apply hair tint without changing component
     SetPedHairTint(p, Number(hair.hairColor ?? 0), Number(hair.hairHighlight ?? 0));
   }
 
@@ -170,7 +169,6 @@ function applyAppearance(p, data = {}) {
       Number(overlay.opacity ?? 1.0)
     );
     
-    // Find the overlay definition to get the correct colorType
     const overlayDef = HEAD_OVERLAYS.find((o) => o.overlayId === Number(overlay.overlayId ?? 1));
     const colorType = overlayDef?.defaultColorType ?? 0;
     
@@ -229,6 +227,88 @@ on("logic:appearance:apply", (data) => {
   applyAppearance(p, data || {});
 });
 
+async function changeSex(sex) {
+  const oldPed = PlayerPedId();
+  if (!oldPed || !DoesEntityExist(oldPed)) return false;
+
+  const sexValue = Number(sex) === 1 ? 1 : 0;
+  const modelName = FREEMODE_MODELS[sexValue];
+  const modelHash = GetHashKey(modelName);
+
+  console.log(`^3[appearance]^7 Starting model change to ${modelName}`);
+
+  RequestModel(modelHash);
+  let loaded = false;
+  let timeout = 0;
+  
+  while (!loaded && timeout < 5000) {
+    if (HasModelLoaded(modelHash)) {
+      loaded = true;
+      break;
+    }
+    await new Promise(resolve => setTimeout(resolve, 50));
+    timeout += 50;
+  }
+
+  if (!loaded) {
+    console.error(`^1[appearance]^7 Failed to load model ${modelName}`);
+    SetModelAsNoLongerNeeded(modelHash);
+    return false;
+  }
+
+  console.log(`^3[appearance]^7 Model loaded, applying to player`);
+
+  const coords = GetEntityCoords(oldPed);
+  const heading = GetEntityHeading(oldPed);
+
+  SetPlayerModel(PlayerId(), modelHash);
+  
+  await new Promise(resolve => setTimeout(resolve, 100));
+  const newPed = PlayerPedId();
+  
+  console.log(`^3[appearance]^7 Ped changed: old=${oldPed}, new=${newPed}`);
+
+  SetEntityCoords(newPed, coords[0], coords[1], coords[2], false, false, false, false);
+  SetEntityHeading(newPed, heading);
+
+  SetPedDefaultComponentVariation(newPed);
+  ClearAllPedProps(newPed);
+
+  const shapeValue = sexValue === 1 ? 21 : 0;
+  const skinValue = sexValue === 1 ? 21 : 0;
+  SetPedHeadBlendData(
+    newPed,
+    shapeValue, shapeValue, 0,
+    0, 0, 0,
+    1, 1, 0.0,
+    true
+  );
+
+  SetModelAsNoLongerNeeded(modelHash);
+
+  console.log(`^3[appearance]^7 Model change complete, refreshing appearance`);
+
+  // Wait a bit then refresh appearance info
+  await new Promise(resolve => setTimeout(resolve, 250));
+  emit("logic:appearance:infoRequest");
+
+  return true;
+}
+
+on("logic:appearance:changeSex", async (sex) => {
+  await changeSex(sex);
+});
+
+function getSex(p) {
+  const modelHash = GetEntityModel(p);
+  const maleHash = GetHashKey(FREEMODE_MODELS[0]);
+  const femaleHash = GetHashKey(FREEMODE_MODELS[1]);
+  
+  if (modelHash === maleHash) return 0;
+  if (modelHash === femaleHash) return 1;
+  return 0; // default to male
+}
+
 function buildAppearanceInfo(p) {
   const overlays = HEAD_OVERLAYS.map((o) => ({
     key: o.key,
@@ -245,6 +325,7 @@ function buildAppearanceInfo(p) {
 
   const faceFeatures = getFaceFeatures(p);
   const headBlend = getHeadBlendState(p);
+  const sex = getSex(p);
 
   return {
     type: "sync",
@@ -252,6 +333,7 @@ function buildAppearanceInfo(p) {
     components,
     faceFeatures,
     headBlend,
+    sex,
   };
 }
 

@@ -55,3 +55,9 @@ function stopFaceCam() {
 
 RegisterCommand("facecam", () => startFaceCam(), false);
 RegisterCommand("facecam_off", () => stopFaceCam(), false);
+
+on('logic:freemode:ready', ({ ped, model }) => {
+  if (ped && DoesEntityExist(ped)) {
+    startFaceCam();
+  }
+});
